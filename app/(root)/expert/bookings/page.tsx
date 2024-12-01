@@ -3,7 +3,7 @@ import React from 'react'
 export default function page() {
     return (
         <div>
-            This is user-expert
+            This is booking page
         </div>
     )
 }
