@@ -35,10 +35,10 @@ const drawerWidth = 300;
 const menuItems = [
   { text: "Home", icon: <HomeIcon />, link: "/expert/home" },
   { text: "Bookings", icon: <CallIcon />, link: "/expert/bookings" },
-  { text: "Priority DM", icon: <ChatBubbleIcon />, link: "/priority-dm" },
-  { text: "Testimonials", icon: <FavoriteIcon />, link: "/testimonials" },
-  { text: "Calendar", icon: <CalendarTodayIcon />, link: "/calendar" },
-  { text: "Services", icon: <BuildIcon />, link: "/services" },
+  { text: "Priority DM", icon: <ChatBubbleIcon />, link: "/expert/priority-dm" },
+  { text: "Testimonials", icon: <FavoriteIcon />, link: "/expert/testimonials" },
+  { text: "Calendar", icon: <CalendarTodayIcon />, link: "/expert/calender" },
+  { text: "Services", icon: <BuildIcon />, link: "/expert/services" },
   { text: "Analytics", icon: <AssessmentIcon />, link: "/analytics" },
   { text: "Marketing", icon: <CampaignIcon />, link: "/marketing" },
   { text: "Payments", icon: <PaymentIcon />, link: "/payments" },
@@ -54,7 +54,7 @@ export default function Sidebar() {
   const drawer = (
     <Box sx={{ padding: 4 }}>
       {/* Sidebar Header */}
-      <Typography variant="h4" color="red" sx={{ fontWeight: "bold", marginBottom: 4 }}>
+      <Typography variant="h4" color="red" sx={{ fontWeight: "bo ld", marginBottom: 4 }}>
         HOHAI
       </Typography>
       {/* Publish Button */}
