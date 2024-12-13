@@ -43,7 +43,7 @@ const menuItems = [
   { text: "Marketing", icon: <CampaignIcon />, link: "/expert/marketing" },
   { text: "Payments", icon: <PaymentIcon />, link: "/expert/payments" },
   { text: "Checkout", icon: <ShoppingCartIcon />, link: "/expert/checkout" },
-  { text: "Profile", icon: <AccountCircleIcon />, link: "/profile" },
+  { text: "Profile", icon: <AccountCircleIcon />, link: "/expert/profile" },
   { text: "Rewards", icon: <CardGiftcardIcon />, link: "/rewards" },
   { text: "What's New", icon: <NewReleasesIcon />, link: "/whats-new" },
 ];
