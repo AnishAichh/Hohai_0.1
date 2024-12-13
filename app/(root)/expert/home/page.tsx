@@ -4,7 +4,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
+import CardContent from "@mui/material/CardContent";  
 import Button from "@mui/material/Button";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -16,7 +16,7 @@ export default function HomePage() {
     <Box sx={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
       {/* Greeting Section */}
       <Typography variant="h4" sx={{ fontWeight: "bold", marginBottom: "20px" }}>
-        Hi, Anish
+        Hi, Darshan
       </Typography>
 
       {/* Notification Banner */}
