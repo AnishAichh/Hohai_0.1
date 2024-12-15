@@ -2,8 +2,12 @@
 import React, { useState } from "react";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
-const PasswordInput: React.FC = () => {
-    const [password, setPassword] = useState('');
+interface PasswordInputProps {
+    password: string;
+    setPassword: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const PasswordInput: React.FC<PasswordInputProps> = ({ password, setPassword }) => {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
