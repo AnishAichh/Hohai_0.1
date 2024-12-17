@@ -1,21 +1,49 @@
 'use client';
 import Footer from '@/components/shared/Footer';
 import { experts, faqs } from '@/constants/data';
-import { useUser } from '@/context/UserContext';  // Ensure path is correct
+import { useUser } from '@/context/UserContext'; // Ensure path is correct
 import { Avatar, Menu, MenuItem } from '@mui/material';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/utils/firebaseConfig'; // Firestore config
 import Logout from '@/components/shared/buttons/Logout';
 
 const Home: React.FC = () => {
-    const { user } = useUser();  // This will work if UserProvider is correctly set up
+    const { user } = useUser(); // This will work if UserProvider is correctly set up
 
     // State for controlling the user menu
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
 
-    // Log user ID
-    console.log('User ID:', user?.id);
+    // State for fetching top experts
+    const [expertsList, setExpertsList] = useState<any[]>([]);
+
+    // Fetch Top Experts from Firestore
+    useEffect(() => {
+        const fetchExperts = async () => {
+            try {
+                const expertsQuery = query(collection(db, 'users'), where('isExpert', '==', true));
+                const querySnapshot = await getDocs(expertsQuery);
+
+                const expertsData = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        firstName: data.firstName || 'Expert',  // Default to 'Expert' if missing
+                        lastName: data.lastName || '',  // Default to empty string if missing
+                        photoURL: data.photoURL || '/default-avatar.png',  // Default image if missing
+                    };
+                });
+
+                setExpertsList(expertsData);
+            } catch (error) {
+                console.error('Error fetching experts:', error);
+            }
+        };
+
+        fetchExperts();
+    }, []);
 
     // Function to handle opening the user menu
     const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -132,7 +160,45 @@ const Home: React.FC = () => {
                     </div>
                 </section>
 
-                {/* Other Sections Remain Same */}
+                {/* Top Experts Section */}
+                <section className="py-12 px-8">
+                    <h3 className="text-xl font-bold">TOP EXPERT</h3>
+                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 mt-6">
+                        {expertsList.map((expert) => (
+                            <div key={expert.id} className="flex flex-col items-center">
+                                <div className="w-24 h-24 rounded-full bg-gray-300 overflow-hidden">
+                                    <img
+                                        src={expert.photoURL} // No fallback needed as the default is handled during fetch
+                                        alt={`${expert.firstName} ${expert.lastName}`}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <p className="mt-2 text-center text-gray-700">
+                                    {expert.firstName} {expert.lastName}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Other Sections */}
+                <section className="py-12 px-8 text-center">
+                    <h3 className="text-lg font-semibold mb-2">
+                        WHAT EVER THE PROBLEM, WE HAVE A SOLUTION
+                    </h3>
+                    <div className="flex items-center bg-gray-100 p-6 rounded-lg shadow-md text-left">
+                        <div className="ml-6">
+                            <h4 className="text-red-600 font-bold text-2xl">HOHAI</h4>
+                            <p className="text-blue-600 font-medium">Search, Solve, Succeed</p>
+                            <p className="mt-2 text-gray-700">
+                                Hohai is a platform connecting consumers with skilled professionals
+                                for instant help through video calls or chat, available anytime,
+                                anywhere.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
                 <Footer />
             </main>
         </div>
