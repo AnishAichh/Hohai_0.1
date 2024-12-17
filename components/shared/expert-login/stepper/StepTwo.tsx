@@ -5,7 +5,7 @@ export default function StepTwo({ onSave }: { onSave: (data: any) => void }) {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [formData, setFormData] = useState({
         socialLink: '',
-        topmatePage: 'topmate.io/username',
+        topmatePage: 'hohai.in/username',
         usagePlan: '',
     });
 
@@ -36,7 +36,7 @@ export default function StepTwo({ onSave }: { onSave: (data: any) => void }) {
             />
             <TextField
                 fullWidth
-                label="Your topmate page link"
+                label="Your Hohai page link"
                 variant="outlined"
                 value={formData.topmatePage}
                 name="topmatePage"

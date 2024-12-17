@@ -1,8 +1,64 @@
 // pages/profile.js
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { Box, Typography, TextField, Button, Avatar, Card, CardContent } from "@mui/material";
+import { useUser } from "@/context/UserContext";  // Assuming you have this context for user info
+import { db } from "@/utils/firebaseConfig";  // Firebase configuration
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 const ProfilePage = () => {
+  const { user } = useUser();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [topmateLink, setTopmateLink] = useState("");
+  const [yourIntro, setYourIntro] = useState("");  // New field for intro
+  const [aboutYourself, setAboutYourself] = useState("");  // New field for about yourself
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return;
+      try {
+        const userRef = doc(db, "users", user.id);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const profileData = userSnap.data().expertProfile;
+          setFirstName(profileData.firstName || "Expert");
+          setLastName(profileData.lastName || "");
+          setTopmateLink(profileData.topmateLink || "");
+          setYourIntro(profileData.yourIntro || "");
+          setAboutYourself(profileData.aboutYourself || "");
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
+  const handleApply = async () => {
+    if (!user?.id) return;
+    try {
+      const userRef = doc(db, "users", user.id);
+      await updateDoc(userRef, {
+        "expertProfile.yourIntro": yourIntro,
+        "expertProfile.aboutYourself": aboutYourself,
+      });
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
+
+  if (loading) return <Typography>Loading...</Typography>;
+
+  const fullName = `${firstName} ${lastName}`.trim();
+
   return (
     <Box sx={{ display: "flex", height: "100vh" }}>
       {/* Sidebar Placeholder */}
@@ -37,24 +93,65 @@ const ProfilePage = () => {
 
         {/* Profile Details Form */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: 600, mb: 4 }}>
-          <TextField label="Your topmate page link" defaultValue="topmate.io/anish_aich10" fullWidth />
+          <TextField
+            label="Your Hoahi page link"
+            value={topmateLink}
+            fullWidth
+            disabled
+          />
           <Box sx={{ display: "flex", gap: 2 }}>
-            <TextField label="First Name" defaultValue="Anish" fullWidth />
-            <TextField label="Last Name" defaultValue="Aich" fullWidth />
+            <TextField
+              label="First Name"
+              value={firstName}
+              fullWidth
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+            <TextField
+              label="Last Name"
+              value={lastName}
+              fullWidth
+              onChange={(e) => setLastName(e.target.value)}
+            />
           </Box>
-          <TextField label="Display Name" defaultValue="Anish Aich" fullWidth />
-          <TextField label="Your topmate intro" defaultValue="ASTU 21-25 | Project Intern at Ujucode" fullWidth />
+          <TextField
+            label="Display Name"
+            value={`${firstName} ${lastName}`}
+            fullWidth
+            disabled
+          />
+          <TextField
+            label="Your hohai intro"
+            value={yourIntro}
+            fullWidth
+            onChange={(e) => setYourIntro(e.target.value)}
+          />
           <TextField
             label="About Yourself"
             multiline
             rows={4}
-            defaultValue="Hi, I am Anish Aich, a B.Tech 6th-semester student at Dhemaji Engineering College under ASTU.\nMy area of interest includes web development, UI designing and photo editing. Other hobbies of mine are stock chart analysis and creating content.\nI am currently learning Javascript ES6 and React.js."
+            value={aboutYourself}
             fullWidth
+            onChange={(e) => setAboutYourself(e.target.value)}
           />
         </Box>
 
+        {/* Apply Button */}
+        <Button
+          variant="contained"
+          onClick={handleApply}
+          sx={{
+            backgroundColor: "#000",
+            color: "#fff",
+            textTransform: "none",
+            fontWeight: "bold",
+            "&:hover": { backgroundColor: "#333" },
+          }}
+        >
+          Apply
+        </Button>
+
         {/* Widget Section */}
-        <Card sx={{ maxWidth: 600, mb: 15}}>
+        <Card sx={{ maxWidth: 600, mb: 15 }}>
           <CardContent>
             <Typography variant="h6" sx={{ mb: 2 }}>
               Website Widget
@@ -62,7 +159,9 @@ const ProfilePage = () => {
             <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
               Embed topmate on your website in under 1 minute.
             </Typography>
-            <Button variant="contained" fullWidth>Generate</Button>
+            <Button variant="contained" fullWidth>
+              Generate
+            </Button>
           </CardContent>
         </Card>
 

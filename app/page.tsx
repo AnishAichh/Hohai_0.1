@@ -1,21 +1,49 @@
 'use client';
 import Footer from '@/components/shared/Footer';
 import { experts, faqs } from '@/constants/data';
-import { useUser } from '@/context/UserContext';  // Ensure path is correct
+import { useUser } from '@/context/UserContext'; // Ensure path is correct
 import { Avatar, Menu, MenuItem } from '@mui/material';
 import Link from 'next/link';
-import { useState } from 'react';
-import Logout from '@/components/shared/buttons/Logout'
+import { useEffect, useState } from 'react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/utils/firebaseConfig'; // Firestore config
+import Logout from '@/components/shared/buttons/Logout';
 
 const Home: React.FC = () => {
-    const { user } = useUser();  // This will work if UserProvider is correctly set up
+    const { user } = useUser(); // This will work if UserProvider is correctly set up
 
     // State for controlling the user menu
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
 
-    // Log user ID
-    console.log('User ID:', user?.id);
+    // State for fetching top experts
+    const [expertsList, setExpertsList] = useState<any[]>([]);
+
+    // Fetch Top Experts from Firestore
+    useEffect(() => {
+        const fetchExperts = async () => {
+            try {
+                const expertsQuery = query(collection(db, 'users'), where('isExpert', '==', true));
+                const querySnapshot = await getDocs(expertsQuery);
+
+                const expertsData = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        firstName: data.firstName || 'Expert',  // Default to 'Expert' if missing
+                        lastName: data.lastName || '',  // Default to empty string if missing
+                        photoURL: data.photoURL || '/default-avatar.png',  // Default image if missing
+                    };
+                });
+
+                setExpertsList(expertsData);
+            } catch (error) {
+                console.error('Error fetching experts:', error);
+            }
+        };
+
+        fetchExperts();
+    }, []);
 
     // Function to handle opening the user menu
     const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -38,12 +66,15 @@ const Home: React.FC = () => {
                     <Link href="/about" className="text-gray-700">
                         ABOUT US
                     </Link>
-                    <Link
-                        href={user ? '/expert-login' : '/login'}
-                        className="text-gray-700"
-                    >
-                        BECOME EXPERT
-                    </Link>
+                    {/* Hide "BECOME EXPERT" button if user is an expert */}
+                    {!user?.isExpert && (
+                        <Link
+                            href={user ? '/expert-login' : '/login'}
+                            className="text-gray-700"
+                        >
+                            BECOME EXPERT
+                        </Link>
+                    )}
                     {user ? (
                         <div>
                             <Avatar
@@ -60,7 +91,7 @@ const Home: React.FC = () => {
                                 {!user.photo && (user.name ? user.name[0] : user.email)}
                             </Avatar>
 
-                            {/* User Menu (Profile, Logout) */}
+                            {/* User Menu (Profile, Expert Dashboard, Logout) */}
                             <Menu
                                 anchorEl={anchorEl}
                                 open={openMenu}
@@ -75,6 +106,16 @@ const Home: React.FC = () => {
                                 <MenuItem onClick={handleMenuClose}>
                                     <Link href="/profile" className="text-gray-700">Profile</Link>
                                 </MenuItem>
+
+                                {/* Expert Dashboard only for experts */}
+                                {user.isExpert && (
+                                    <MenuItem onClick={handleMenuClose}>
+                                        <Link href="/expert/home" className="text-gray-700">
+                                            Expert Dashboard
+                                        </Link>
+                                    </MenuItem>
+                                )}
+
                                 <MenuItem onClick={handleMenuClose}>
                                     <Logout /> {/* Logout button will be rendered */}
                                 </MenuItem>
@@ -123,40 +164,24 @@ const Home: React.FC = () => {
                 <section className="py-12 px-8">
                     <h3 className="text-xl font-bold">TOP EXPERT</h3>
                     <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 mt-6">
-                        {[...Array(6)].map((_, idx) => (
-                            <div key={idx} className="flex flex-col items-center">
-                                <div className="w-24 h-24 rounded-full bg-gray-300"></div>
-                                <p className="mt-2 text-center text-gray-700">DUMMY USER<br />DUMMY EXPERT</p>
+                        {expertsList.map((expert) => (
+                            <div key={expert.id} className="flex flex-col items-center">
+                                <div className="w-24 h-24 rounded-full bg-gray-300 overflow-hidden">
+                                    <img
+                                        src={expert.photoURL} // No fallback needed as the default is handled during fetch
+                                        alt={`${expert.firstName} ${expert.lastName}`}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <p className="mt-2 text-center text-gray-700">
+                                    {expert.firstName} {expert.lastName}
+                                </p>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                {/* Need Help in Specific Domain */}
-                <section className="py-12 px-8">
-                    <h3 className="text-xl font-bold text-center mb-6">Need Help in Specific Domain?</h3>
-                    <div className="flex justify-center gap-6">
-                        {experts?.map((expert) => (
-                            <div
-                                key={expert.id}
-                                className="w-20 h-20 bg-gray-200 rounded-full overflow-hidden shadow"
-                            >
-                                <img
-                                    src={expert.image}
-                                    alt={expert.name}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        ))}
-                    </div>
-                    <div className="text-center mt-4">
-                        <Link legacyBehavior href="/domains">
-                            <a className="text-blue-500 font-semibold">SHOW MORE DOMAINS</a>
-                        </Link>
-                    </div>
-                </section>
-
-                {/* Solution Section */}
+                {/* Other Sections */}
                 <section className="py-12 px-8 text-center">
                     <h3 className="text-lg font-semibold mb-2">
                         WHAT EVER THE PROBLEM, WE HAVE A SOLUTION
@@ -171,24 +196,6 @@ const Home: React.FC = () => {
                                 anywhere.
                             </p>
                         </div>
-                    </div>
-                </section>
-
-                {/* FAQ Section */}
-                <section className="py-12 px-8">
-                    <h3 className="text-xl font-bold">FAQ</h3>
-                    <div className="mt-6">
-                        {faqs?.map((faq, index) => (
-                            <div key={index} className="bg-white border border-gray-200 rounded-lg shadow-md">
-                                <details className="p-4">
-                                    <summary className="cursor-pointer text-lg font-semibold text-gray-700 flex justify-between">
-                                        <span>{faq.question}</span>
-                                        <span className="text-blue-500">+</span>
-                                    </summary>
-                                    <p className="mt-2 text-gray-600">{faq.answer}</p>
-                                </details>
-                            </div>
-                        ))}
                     </div>
                 </section>
 

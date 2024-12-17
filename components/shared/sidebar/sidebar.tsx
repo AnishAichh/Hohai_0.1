@@ -54,9 +54,11 @@ export default function Sidebar() {
   const drawer = (
     <Box sx={{ padding: 4 }}>
       {/* Sidebar Header */}
-      <Typography variant="h4" color="red" sx={{ fontWeight: "bo ld", marginBottom: 4 }}>
-        HOHAI
-      </Typography>
+      <Link href="/">
+        <Typography variant="h4" color="red" sx={{ fontWeight: "bold", marginBottom: 4 }}>
+          HOHAI
+        </Typography>
+      </Link>
       {/* Publish Button */}
       <Button
         variant="contained"
