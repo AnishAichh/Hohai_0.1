@@ -6,6 +6,9 @@ import EmailInput from '@/components/shared/Login/EmailInput';
 import PasswordInput from '@/components/shared/Login/PasswordInput';
 import SocialLogin from '@/components/shared/Login/SocialLogin';
 import Link from 'next/link';
+import { useUser } from '@/context/UserContext'; // Import the useUser hook to update context
+import { auth } from '@/utils/firebaseConfig'; // Import firebase config
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication function
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -13,6 +16,7 @@ const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    const { setUser } = useUser(); // Destructure setUser from the context
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -21,23 +25,27 @@ const Login: React.FC = () => {
         setError('');
 
         try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-            });
+            // Use Firebase Authentication to sign in
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-            const data = await res.json();
+            // Get user data from Firebase
+            const user = userCredential.user;
 
-            if (res.ok) {
-                router.push('/'); // Redirect to home page on success
-            } else {
-                setError(data.error || 'Invalid credentials.');
-            }
+            // Create a user object to store in context
+            const loggedInUser = {
+                id: user.uid,
+                name: user.displayName || 'No Name',  // Fallback to 'No Name' if no displayName is set
+                email: user.email || 'No Email',  // Fallback to 'No Email' if email is not set
+                photo: user.photoURL || '',  // Fallback to empty string if no photo
+            };
+
+            // Update user context with the logged-in user data
+            setUser(loggedInUser);
+
+            // Redirect to home page on success
+            router.push('/');
         } catch (err) {
-            setError('Something went wrong. Please try again.');
+            setError('Invalid credentials or something went wrong.');
         } finally {
             setLoading(false);
         }

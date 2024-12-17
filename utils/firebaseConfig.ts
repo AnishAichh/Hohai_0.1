@@ -1,7 +1,8 @@
-import { getApp, getApps, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getApp, getApps, initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
+// Firebase configuration object
 const firebaseConfig = {
     apiKey: "AIzaSyBbO9z5KoNh0MVLyRtaX-xS8X9envw2JJk",
     authDomain: "hohai-2.firebaseapp.com",
@@ -12,8 +13,9 @@ const firebaseConfig = {
     measurementId: "G-CB83ZZEYER"
 };
 
+// Initialize Firebase only if not already initialized
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
+// Export Auth and Firestore services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
