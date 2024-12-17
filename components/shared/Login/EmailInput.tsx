@@ -1,9 +1,12 @@
 'use client';
-import React, { useState } from "react";
+import React from "react";
 
-const EmailInput: React.FC = () => {
-    const [email, setEmail] = useState('');
+interface EmailInputProps {
+    email: string;
+    setEmail: React.Dispatch<React.SetStateAction<string>>;
+}
 
+const EmailInput: React.FC<EmailInputProps> = ({ email, setEmail }) => {
     return (
         <div>
             <label className="block text-md py-2 font-semibold">Email*</label>
