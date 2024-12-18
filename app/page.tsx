@@ -1,13 +1,16 @@
 'use client';
+
 import Footer from '@/components/shared/Footer';
 import { experts, faqs } from '@/constants/data';
 import { useUser } from '@/context/UserContext'; // Ensure path is correct
-import { Avatar, Menu, MenuItem } from '@mui/material';
+import { Avatar, Menu, MenuItem, Dialog, DialogContent, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/utils/firebaseConfig'; // Firestore config
 import Logout from '@/components/shared/buttons/Logout';
+import Chatbot from '@/components/shared/chatbot/chatbot'; // Import your chatbot component
 
 const Home: React.FC = () => {
     const { user } = useUser(); // This will work if UserProvider is correctly set up
@@ -18,6 +21,9 @@ const Home: React.FC = () => {
 
     // State for fetching top experts
     const [expertsList, setExpertsList] = useState<any[]>([]);
+
+    // State for Dialog
+    const [openDialog, setOpenDialog] = useState(false);
 
     // Fetch Top Experts from Firestore
     useEffect(() => {
@@ -55,14 +61,21 @@ const Home: React.FC = () => {
         setAnchorEl(null);
     };
 
+    // Open/Close Dialog
+    const handleDialogOpen = () => setOpenDialog(true);
+    const handleDialogClose = () => setOpenDialog(false);
+
     return (
         <div className="font-sans w-5/6 mx-auto">
             <header className="bg-white border-b shadow-lg p-4 flex justify-between items-center">
                 <h1 className="text-red-600 font-bold text-2xl">HOHAI</h1>
                 <div className="flex space-x-4">
-                    <Link href="/find-help" className="bg-gray-200 text-black py-2 px-4 rounded-md">
+                    <button
+                        onClick={handleDialogOpen} // Open Chatbot Dialog
+                        className="bg-gray-200 text-black py-2 px-4 rounded-md"
+                    >
                         FIND HELP
-                    </Link>
+                    </button>
                     <Link href="/about" className="text-gray-700">
                         ABOUT US
                     </Link>
@@ -137,6 +150,19 @@ const Home: React.FC = () => {
                     <div className="mt-8 mx-auto bg-gray-300 w-3/4 h-32 rounded-lg"></div>
                 </section>
 
+                {/* Dialog Component */}
+                <Dialog open={openDialog} onClose={handleDialogClose} maxWidth="md" fullWidth>
+                    <div className="flex justify-between items-center p-2 border-b">
+                        <h2 className="text-lg font-semibold">Chatbot</h2>
+                        <IconButton onClick={handleDialogClose}>
+                            <CloseIcon />
+                        </IconButton>
+                    </div>
+                    <DialogContent className="p-0">
+                        <Chatbot /> {/* Chatbot Component */}
+                    </DialogContent>
+                </Dialog>
+
                 {/* Popular Q&A Section */}
                 <section className="py-12 px-8">
                     <h3 className="text-xl font-bold">MOST POPULAR Q&A</h3>
@@ -153,15 +179,9 @@ const Home: React.FC = () => {
                             </div>
                         ))}
                     </div>
-                    <div className="mt-4 text-right">
-                        <Link legacyBehavior href="/qna">
-                            <a className="text-blue-500 font-semibold">SHOW MORE Q&A</a>
-                        </Link>
-                    </div>
                 </section>
-
-                {/* Top Experts Section */}
-                <section className="py-12 px-8">
+                 {/* Top Experts Section */}
+                 <section className="py-12 px-8">
                     <h3 className="text-xl font-bold">TOP EXPERT</h3>
                     <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 mt-6">
                         {expertsList.map((expert) => (
@@ -199,8 +219,9 @@ const Home: React.FC = () => {
                     </div>
                 </section>
 
-                <Footer />
             </main>
+
+            <Footer />
         </div>
     );
 };
