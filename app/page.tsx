@@ -151,18 +151,34 @@ const Home: React.FC = () => {
                 </section>
 
                 {/* Dialog Component */}
-                <Dialog open={openDialog} onClose={handleDialogClose} maxWidth="md" fullWidth>
+                <Dialog
+                    open={openDialog}
+                    onClose={handleDialogClose}
+                    maxWidth={false} // Disable default max width to fit content size
+                    PaperProps={{
+                        style: {
+                            padding: 0, // Remove any default padding
+                            margin: 0,  // Remove default margin
+                            width: 'fit-content', // Adjust to the Chatbot's width
+                            height: 'fit-content', // Adjust to the Chatbot's height
+                            overflow: 'hidden', // Prevent scrolling around the content
+                        },
+                    }}
+                >
                     <div className="flex justify-between items-center p-2 border-b">
                         <h2 className="text-lg font-semibold">Chatbot</h2>
                         <IconButton onClick={handleDialogClose}>
                             <CloseIcon />
                         </IconButton>
                     </div>
-                    <DialogContent className="p-0">
+                    <DialogContent
+                        sx={{
+                            padding: 2, // Remove default padding in MUI's DialogContent
+                        }}
+                    >
                         <Chatbot /> {/* Chatbot Component */}
                     </DialogContent>
                 </Dialog>
-
                 {/* Popular Q&A Section */}
                 <section className="py-12 px-8">
                     <h3 className="text-xl font-bold">MOST POPULAR Q&A</h3>
@@ -180,8 +196,8 @@ const Home: React.FC = () => {
                         ))}
                     </div>
                 </section>
-                 {/* Top Experts Section */}
-                 <section className="py-12 px-8">
+                {/* Top Experts Section */}
+                <section className="py-12 px-8">
                     <h3 className="text-xl font-bold">TOP EXPERT</h3>
                     <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 mt-6">
                         {expertsList.map((expert) => (
