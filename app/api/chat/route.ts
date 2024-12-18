@@ -1,13 +1,36 @@
 import { db } from '@/utils/firebaseConfig';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, DocumentData } from 'firebase/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Define the type for Expert Profile
+type ExpertProfile = {
+  firstName?: string;
+  lastName?: string;
+  expertise?: string[];
+  socialLink?: string;
+  topmatePage?: string;
+  servicesOffered?: string;
+  avatar?: string;
+};
+
+// Define the type for Professional Profiles
+type Professional = {
+  name: string;
+  expertise: string;
+  socialLink: string;
+  topmatePage: string;
+  servicesOffered: string;
+  avatar: string;
+};
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
-    const expertiseKeywords = [
+
+    // Expertise keywords to match the query
+    const expertiseKeywords: string[] = [
       'Cybersecurity',
       'Law',
       'Content & Branding',
@@ -24,7 +47,8 @@ export async function POST(req: Request) {
       'Marketing',
     ];
 
-    let responseMessage = '';
+    let responseMessage: string = '';
+    let responseProfiles: Professional[] = [];
 
     // Check for expertise-related keywords in the message
     const matchedKeyword = expertiseKeywords.find((keyword) =>
@@ -32,11 +56,10 @@ export async function POST(req: Request) {
     );
 
     if (matchedKeyword) {
-      // Fetch users with matching expertise from Firestore using `array-contains`
+      // Query Firestore for users with matching expertise
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('expertProfile.expertise', 'array-contains', matchedKeyword));
 
-      // Debug log for the matched keyword
       console.log('Query executed for expertise:', matchedKeyword);
 
       const querySnapshot = await getDocs(q);
@@ -45,38 +68,23 @@ export async function POST(req: Request) {
         console.log("No users found for expertise:", matchedKeyword);
         responseMessage = `Sorry, I couldn't find any ${matchedKeyword} professionals in the database.`;
       } else {
-        // Log the fetched documents for debugging
-        querySnapshot.docs.forEach((doc) => {
-          console.log('Fetched document data:', doc.data());
-        });
-
-        const experts = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          const firstName = data.expertProfile?.firstName || '';
-          const lastName = data.expertProfile?.lastName || '';
-          const fullName = `${firstName} ${lastName}`.trim() || 'Unknown';
+        // Map the response data to Professional type
+        responseProfiles = querySnapshot.docs.map((doc) => {
+          const data: DocumentData = doc.data();
+          const profile: ExpertProfile = data.expertProfile || {};
 
           return {
-            name: fullName,
-            expertise: data.expertProfile?.expertise || 'Not specified',
-            socialLink: data.expertProfile?.socialLink || 'Not provided',
-            topmatePage: data.expertProfile?.topmatePage || 'Not available',
-            servicesOffered: data.expertProfile?.servicesOffered || 'No services listed',
+            name: `${profile.firstName || ''} ${profile.lastName || ''}`.trim(),
+            expertise: profile.expertise?.join(', ') || 'Not specified',
+            socialLink: profile.socialLink || '',
+            topmatePage: profile.topmatePage || '',
+            servicesOffered: profile.servicesOffered || '',
+            avatar: profile.avatar || '/default-avatar.png', // Fallback avatar
           };
         });
-
-        // Format the response
-        responseMessage =
-          `Here are some ${matchedKeyword} professionals I found:\n\n` +
-          experts
-            .map(
-              (expert) =>
-                `${expert.name}\nExpertise: ${expert.expertise}\nSocial Link: ${expert.socialLink}\nTopmate Page: ${expert.topmatePage}\nServices Offered: ${expert.servicesOffered}`
-            )
-            .join('\n\n');
       }
     } else {
-      // Fallback to Gemini API if no expertise keyword matches
+      // Fallback to Gemini API for non-expertise related queries
       const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
       const structuredPrompt = `
@@ -96,7 +104,11 @@ export async function POST(req: Request) {
       responseMessage = geminiResponse || "Sorry, I couldn't understand that.";
     }
 
-    return Response.json({ response: responseMessage });
+    // Send the response with proper typing
+    return Response.json({
+      response: responseMessage,
+      profiles: responseProfiles.length > 0 ? responseProfiles : undefined,
+    });
   } catch (error) {
     console.error('Error processing request:', error);
     return Response.json(
