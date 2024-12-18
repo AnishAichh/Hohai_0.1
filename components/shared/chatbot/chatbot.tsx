@@ -48,7 +48,7 @@ export default function Chatbot() {
       if (data.profiles) {
         const profilesWithLink = data.profiles.map((profile: Profile) => ({
           ...profile,
-          profileLink: `/profile?profile=${encodeURIComponent(profile.name)}`, // Create a link with query parameter
+          profileLink: `/profile?fullname=${encodeURIComponent(profile.name)}`, // Create a link with query parameter
         }));
 
         setMessages((prev) => [
@@ -84,6 +84,7 @@ export default function Chatbot() {
                   <div
                     key={i}
                     className="flex items-center space-x-4 p-4 border rounded-lg shadow-md bg-white cursor-pointer"
+                    onClick={() => router.push(profile.profileLink || '')} // Redirect to the profile page on click
                   >
                     <img
                       src={profile.avatar}
